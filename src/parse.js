@@ -3,6 +3,8 @@ const RCOM = /^\s*\(|^\w+:\/\/|www\..*?\.|@.*?\./;
 const RKEYSEP = /^[^A-Za-z0-9]+$/;
 const RURLMAIL = /^\w+:\/\/|@.*?\./;
 const RPHONENO = /^\+?[\d\-]+\s*$/;
+const RURL = /^\w+:\/\//;
+const RMAIL = /@.*?\./;
 
 function joinWords(x, y) {
   return !x || !y? x||y : x+' '+y;
@@ -50,11 +52,31 @@ function scan(s, i=0) {
   return {keywords, comments, compatible};
 }
 
+function parseRenderer(m) {
+  var v = null;
+  if(v=m.get('Gecko')) return 'Gecko/'+v;
+  if(v=m.get('AppleWebKit')) return 'WebKit/'+v;
+  if(v=m.get('Opera')) return 'Presto/'+v;
+  if(v=m.get('Trident')) return 'Trident/'+v;
+  if(v=m.get('Edge')) return 'EdgeHTML/'+v;
+  if(v=m.get('Chrome')) return 'Blink/'+v;
+  return null;
+}
+
 function parse(s, i=0) {
   var {keywords, comments, compatible} = scan(s, i);
-  for(var k of keywords.concat(comments)) {
-    if(0) 0;
+  var phone = null, url = null, email = null;
+  var agents = new Map();
+  for(var p of keywords.concat(comments)) {
+    if(RPHONENO.test(p)) phone = p;
+    else if(RURL.test(p)) url = p;
+    else if(RMAIL.test(p)) email = p;
+    else if(RKEY.test(p)) {
+      var i = p.lastIndexOf('/');
+      agents.set(p.slice(0, i), p.slice(i+1));
+    }
   }
+  var renderer = parseRenderer(agents);
   // agent:
   // - code
   // - name
@@ -79,6 +101,6 @@ function parse(s, i=0) {
   // - version
   // - capabilities
   // (abilities)
-  return scan(s, i);
+  return {renderer, url, email, phone, keywords, comments, compatible};
 }
-module.exports = scan;
+module.exports = parse;
