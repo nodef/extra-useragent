@@ -1,6 +1,6 @@
 {
   "name": "extra-useragent",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A user agent is software acting on behalf of a user, like web browser.",
   "main": "index.js",
   "scripts": {
