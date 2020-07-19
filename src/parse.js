@@ -1,6 +1,8 @@
 const RKEY = /\/\d|Gecko/;
 const RCOM = /^\s*\(|^\w+:\/\/|www\..*?\.|@.*?\./;
 const RKEYSEP = /^[^A-Za-z0-9]+$/;
+const RURLMAIL = /^\w+:\/\/|@.*?\./;
+const RPHONENO = /^\+?[\d\-]+\s*$/;
 
 function joinWords(x, y) {
   return !x || !y? x||y : x+' '+y;
@@ -8,10 +10,12 @@ function joinWords(x, y) {
 
 function transformKeyword(s) {
   s = s.replace(/^like$/, '');
+  if(RPHONENO.test(s)) return s;
   s = s.replace(/^[^A-Za-z0-9?\.]+/, '');
   s = s.replace(/[^A-Za-z0-9?\.]+$/, '');
   s = s.replace(/^www\..*?\..*/, 'http://$&');
-  if(/^\w+:\/\/|@.*?\./.test(s)) return s;
+  if(RURLMAIL.test(s)) return s;
+  s = s.replace(/([A-Za-z]{2,})\.?(\d)/, '$1/$2');
   s = s.replace(/(\/v|-v?|\s+v?|[\W_]*version[\W_]*)(\d)/, '/$2');
   return s;
 }
@@ -20,10 +24,10 @@ function transformComment(s) {
   s = s.replace(/.*?\(/, '');
   s = s.replace(/\).*/, '');
   s = s.replace(/via\s+\S+/g, '$&;');
-  return s.split(/;\s+/g).map(transformKeyword);
+  return s.split(/;\s+|\s+[\W_]\s+/g).map(transformKeyword);
 }
 
-function parse(s, i=0) {
+function scan(s, i=0) {
   var keywords = [], compatible = null;
   var comments = [], key = '', m = null;
   var rsep = /\s+\(?|\s*\(|$/g; rsep.lastIndex = i;
@@ -45,4 +49,36 @@ function parse(s, i=0) {
   if(key) keywords.push(key);
   return {keywords, comments, compatible};
 }
-module.exports = parse;
+
+function parse(s, i=0) {
+  var {keywords, comments, compatible} = scan(s, i);
+  for(var k of keywords.concat(comments)) {
+    if(0) 0;
+  }
+  // agent:
+  // - code
+  // - name
+  // - type
+  // - version
+  // - capabilities
+  // renderer:
+  // - code
+  // - name
+  // - version
+  // - capabilities
+  // os:
+  // - code
+  // - name
+  // - type
+  // - version
+  // - capabilities
+  // device:
+  // - code
+  // - name
+  // - type
+  // - version
+  // - capabilities
+  // (abilities)
+  return scan(s, i);
+}
+module.exports = scan;
