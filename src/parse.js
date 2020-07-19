@@ -17,7 +17,9 @@ function transformKeyword(s) {
   s = s.replace(/[^A-Za-z0-9?\.]+$/, '');
   s = s.replace(/^www\..*?\..*/, 'http://$&');
   if(RURLMAIL.test(s)) return s;
-  s = s.replace(/([A-Za-z]{2,})\.?(\d)/, '$1/$2');
+  s = s.replace(/(\d)\s+(\d)/, '$1/$2');
+  s = s.replace(/([A-Z]{2,})(\d)|([A-Za-z]{2,})\.(\d)/, '$1$3/$2$4');
+  if(RKEY.test(s)) return s;
   s = s.replace(/(\/v|-v?|\s+v?|[\W_]*version[\W_]*)(\d)/, '/$2');
   return s;
 }
@@ -52,13 +54,29 @@ function scan(s, i=0) {
   return {keywords, comments, compatible};
 }
 
+function parseAgent(m) {
+  var v = null;
+  if(v=m.get('Googlebot')) return 'Googlebot/'+v;
+  if(v=m.get('Microsoft Outlook')) return 'Microsoft Outlook/'+v;
+  if(v=m.get('Firefox') && !m.has('Seamonkey')) return 'Firefox/'+v;
+  if(v=m.get('Seamonkey')) return 'Seamonkey/'+v;
+  if(v=m.get('Safari') && !m.has('Chrome') && !m.has('Chromium')) return 'Safari/'+v;
+  if(v=m.get('OPR')||m.get('Opera')) return 'Opera/'+v;
+  if(v=m.get('Edge')) return 'Edge/'+v;
+  if(v=m.get('Trident')||m.get('MSIE')) return 'Internet Explorer/'+v;
+  if(v=m.get('Chrome') && !m.has('Chromium')) return 'Chrome/'+v;
+  if(v=m.get('Chromium')) return 'Chromium/'+v;
+  return null;
+}
+
 function parseRenderer(m) {
   var v = null;
+  if(v=m.get('NetFront')||m.get('PLAYSTATION 3')) return 'NetFront/'+v;
   if(v=m.get('Gecko')) return 'Gecko/'+v;
+  if(v=m.get('Edge')) return 'EdgeHTML/'+v;
   if(v=m.get('AppleWebKit')) return 'WebKit/'+v;
   if(v=m.get('Opera')) return 'Presto/'+v;
   if(v=m.get('Trident')) return 'Trident/'+v;
-  if(v=m.get('Edge')) return 'EdgeHTML/'+v;
   if(v=m.get('Chrome')) return 'Blink/'+v;
   return null;
 }
@@ -66,16 +84,20 @@ function parseRenderer(m) {
 function parse(s, i=0) {
   var {keywords, comments, compatible} = scan(s, i);
   var phone = null, url = null, email = null;
+  var mobile = false, code = null;
   var agents = new Map();
   for(var p of keywords.concat(comments)) {
     if(RPHONENO.test(p)) phone = p;
     else if(RURL.test(p)) url = p;
     else if(RMAIL.test(p)) email = p;
+    else if(/mobi/i.test(p)) mobile = true;
     else if(RKEY.test(p)) {
       var i = p.lastIndexOf('/');
       agents.set(p.slice(0, i), p.slice(i+1));
     }
+    else agents.set(p, null);
   }
+  var code = parseAgent(agents);
   var renderer = parseRenderer(agents);
   // agent:
   // - code
@@ -101,6 +123,6 @@ function parse(s, i=0) {
   // - version
   // - capabilities
   // (abilities)
-  return {renderer, url, email, phone, keywords, comments, compatible};
+  return {code, renderer, mobile, url, email, phone, keywords, comments, compatible};
 }
 module.exports = parse;
