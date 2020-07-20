@@ -1,6 +1,9 @@
+const BROWSERS = require('./BROWSERS');
+
 const RKEY = /\/\d|Gecko/;
 const RCOM = /^\s*\(|^\w+:\/\/|www\..*?\.|@.*?\./;
 const RKEYSEP = /^[^A-Za-z0-9]+$/;
+const RKEYVER = /\/(\d[^\/]*)/;
 const RURLMAIL = /^\w+:\/\/|@.*?\./;
 const RPHONENO = /^\+?[\d\-]+\s*$/;
 const RURL = /^\w+:\/\//;
@@ -8,6 +11,14 @@ const RMAIL = /@.*?\./;
 
 function joinWords(x, y) {
   return !x || !y? x||y : x+' '+y;
+}
+
+function keywordName(s) {
+  return s.replace(RKEYVER, '');
+}
+
+function keywordVersion(s) {
+  return s.replace(RKEYVER, '$1');
 }
 
 function transformKeyword(s) {
@@ -81,6 +92,9 @@ function parseRenderer(m) {
   return null;
 }
 
+// agent
+// - other that browser
+// - follows compatible
 function parse(s, i=0) {
   var {keywords, comments, compatible} = scan(s, i);
   var phone = null, url = null, email = null;
@@ -91,13 +105,14 @@ function parse(s, i=0) {
     else if(RURL.test(p)) url = p;
     else if(RMAIL.test(p)) email = p;
     else if(/mobi/i.test(p)) mobile = true;
-    else if(RKEY.test(p)) {
-      var i = p.lastIndexOf('/');
-      agents.set(p.slice(0, i), p.slice(i+1));
+    else {
+      var name = keywordName(p);
+      var ver = keywordVersion(p);
+      if(!BROWSERS.has(name)) code = p;
+      agents.set(name, ver);
     }
-    else agents.set(p, null);
   }
-  var code = parseAgent(agents);
+  code = code||parseAgent(agents);
   var renderer = parseRenderer(agents);
   // agent:
   // - code
