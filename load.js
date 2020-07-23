@@ -19,10 +19,10 @@ function saveMap(pth, x) {
 
 async function load() {
   var developers = await loadPage('/developers');
-  saveMap('build/developers.csv', developers);
+  saveMap('data/developers.csv', developers);
   for(var [k, v] of developers) {
     var developer = await loadPage(k);
-    saveMap('build/developer.csv', developer);
+    saveMap('data/developer.csv', developer);
     break;
   }
 }
