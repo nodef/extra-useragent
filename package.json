@@ -1,6 +1,6 @@
 {
   "name": "extra-useragent",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A user agent is software acting on behalf of a user, like web browser.",
   "main": "index.js",
   "scripts": {
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/nodef/extra-useragent/issues"
   },
-  "homepage": "https://github.com/nodef/extra-useragent#readme"
+  "homepage": "https://github.com/nodef/extra-useragent#readme",
+  "devDependencies": {
+    "jsdom": "^16.3.0"
+  }
 }
