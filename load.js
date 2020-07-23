@@ -4,7 +4,7 @@ const {EOL} = require('os');
 
 
 async function loadPage(id) {
-  var {window} = await JSDOM.fromURL('https://user-agents.net/'+id);
+  var {window} = await JSDOM.fromURL('https://user-agents.net'+id);
   var {document} = window;
   var as = [...document.querySelectorAll('ul.compact_list li a')];
   return new Map(as.map(a => [a.getAttribute('href'),  a.textContent]));
@@ -18,8 +18,13 @@ function saveMap(pth, x) {
 }
 
 async function load() {
-  var developers = await loadPage('developers');
+  var developers = await loadPage('/developers');
   saveMap('build/developers.csv', developers);
+  for(var [k, v] of developers) {
+    var developer = await loadPage(k);
+    saveMap('build/developer.csv', developer);
+    break;
+  }
 }
 module.exports = load;
 if(require.main===module) load();
