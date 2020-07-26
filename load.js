@@ -1,5 +1,6 @@
 const {JSDOM} = require('jsdom');
 const fs = require('fs');
+const path = require('path');
 const {EOL} = require('os');
 
 
@@ -18,11 +19,14 @@ function saveMap(pth, x) {
 }
 
 async function load() {
+  var dir = 'data';
+  var fil = path.join(dir, 'developers.csv');
   var developers = await loadPage('/developers');
-  saveMap('data/developers.csv', developers);
+  saveMap(fil, developers);
+  var fil = path.join(dir, 'developer.csv');
   for(var [k, v] of developers) {
     var developer = await loadPage(k);
-    saveMap('data/developer.csv', developer);
+    saveMap(fil, developer);
     break;
   }
 }
